@@ -6,7 +6,7 @@ export const TEMPLATES = {
             whatsapp: 'Flight {flightNumber} is delayed by {delayMinutes} minutes. Please check status.',
         },
         CANCELLED: {
-            email: 'Flight {flightNumber} has been CANCELLED. Next steps: {nextSteps}',
+            email: 'Flight {flightNumber} has been CANCELLED. We are sorry for the inconvenience. Next steps: {nextSteps}',
             sms: 'Flight {flightNumber} CANCELLED. Check app for rebooking.',
             whatsapp: 'Flight {flightNumber} CANCELLED. We apologize. Options: {nextSteps}',
         },
@@ -27,7 +27,7 @@ export const TEMPLATES = {
 };
 
 export const NEXT_STEPS = {
-    en: 'Rebook via app or visit valid-url.com',
+    en: 'Rebook via app or visit https://www.skyscanner.co.in/. Compensation will be paid back to you.',
     es: 'Reserve de nuevo en la app',
 };
 

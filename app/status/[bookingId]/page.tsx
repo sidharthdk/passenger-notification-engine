@@ -35,67 +35,72 @@ export default async function StatusPage(props: PageProps) {
     const nextStepsText = (NEXT_STEPS as any)[lang] || NEXT_STEPS['en'];
 
     return (
-        <main style={{ maxWidth: 600, margin: '2rem auto' }}>
-            {/* Auto refresh meta tag for "Live" feel */}
+        <main style={{ maxWidth: 500, margin: '4rem auto' }}>
             <meta httpEquiv="refresh" content="30" />
 
-            <div style={{ marginBottom: '1rem' }}>
-                <a href="/" className="btn btn-outline" style={{ fontSize: '0.8rem' }}>&larr; Back to Dashboard</a>
+            <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                <a href="/" className="btn btn-outline" style={{ background: 'white', borderRadius: '2rem' }}>&larr; Search Another Flight</a>
             </div>
 
-            <div className="card">
-                <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1rem' }}>
-                    <h1 style={{ marginBottom: '0.25rem' }}>Flight {flight.flight_number}</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Passenger: {passenger.name}</p>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                    <div>
-                        <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Status</div>
-                        <div style={{ marginTop: '0.25rem' }}>
-                            <span className={`badge ${status}`}>{status}</span>
-                        </div>
-                    </div>
+            <div className="card" style={{ padding: 0, overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-lg)' }}>
+                {/* Header Section */}
+                <div style={{
+                    padding: '2rem',
+                    background: status === 'CANCELLED' ? 'var(--danger-bg)' :
+                        status === 'DELAYED' ? 'var(--warning-bg)' :
+                            'linear-gradient(135deg, var(--primary), var(--accent))',
+                    color: status === 'ON_TIME' ? 'white' : 'var(--text-main)',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ opacity: 0.8, textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em' }}>Flight Status</div>
+                    <h1 style={{ fontSize: '3rem', margin: '0.5rem 0', background: 'none', WebkitTextFillColor: 'unset' }}>{status.replace('_', ' ')}</h1>
                     {flight.delay_minutes > 0 && (
-                        <div>
-                            <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Delay</div>
-                            <strong style={{ color: '#ea580c', fontSize: '1.25rem' }}>+{flight.delay_minutes} min</strong>
-                        </div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>+{flight.delay_minutes} Minute Delay</div>
                     )}
                 </div>
 
-                <div style={{ background: 'var(--bg-page)', padding: '1rem', borderRadius: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>DEPARTURE</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 500 }}>
-                            {new Date(flight.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {/* Body Section */}
+                <div style={{ padding: '2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                        <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1 }}>{flight.flight_number}</div>
+                            <div style={{ color: 'var(--text-muted)' }}>Passenger: {passenger.name}</div>
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            {new Date(flight.departure_time).toLocaleDateString()}
-                        </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>ARRIVAL</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 500 }}>
-                            {new Date(flight.arrival_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-muted)' }}>{booking.seat_number || '10A'}</div>
+                            <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-light)' }}>Seat</div>
                         </div>
                     </div>
-                </div>
 
-                {/* Action Card for disruptions */}
-                {(status === 'CANCELLED' || flight.delay_minutes >= 30) && (
-                    <div style={{ marginTop: '2rem', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '0.5rem', padding: '1rem' }}>
-                        <h3 style={{ color: '#b45309', marginBottom: '0.5rem' }}>⚠️ Action Required</h3>
-                        <p style={{ marginBottom: '1rem' }}>{nextStepsText}</p>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            {status === 'CANCELLED' && (
-                                <button className="btn btn-danger">Rebook Flight</button>
-                            )}
-                            <button className="btn btn-outline" style={{ background: 'white' }}>Track Inbound</button>
-                            <button className="btn btn-outline" style={{ background: 'white' }}>Compensation Rights</button>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', padding: '1.5rem', background: 'var(--bg-page)', borderRadius: '1rem' }}>
+                        <div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>DEPARTURE</div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                                {new Date(flight.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>ARRIVAL</div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                                {new Date(flight.arrival_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
                         </div>
                     </div>
-                )}
+
+                    {(status === 'CANCELLED' || flight.delay_minutes >= 30) && (
+                        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                            <div style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                {nextStepsText}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {status === 'CANCELLED' && (
+                                    <button className="btn btn-danger" style={{ width: '100%' }}>Rebook Now</button>
+                                )}
+                                <button className="btn btn-outline" style={{ width: '100%' }}>View Compensation Rights</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </main>
     );
