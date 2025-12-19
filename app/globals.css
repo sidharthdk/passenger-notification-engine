@@ -229,3 +229,9 @@ a {
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.05em;
 }
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
