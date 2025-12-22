@@ -15,7 +15,15 @@ export async function processFlightUpdate(oldFlight: Flight | null, newFlight: F
     const isCancellationTrigger =
         oldFlight?.status !== 'CANCELLED' && newFlight.status === 'CANCELLED';
 
+    console.log('[RulesEngine] Evaluation:', {
+        oldStatus: oldFlight?.status,
+        newStatus: newFlight.status,
+        isCancellationTrigger,
+        isDelayTrigger
+    });
+
     if (!isDelayTrigger && !isCancellationTrigger) {
+        console.log('[RulesEngine] No triggers met.');
         return; // No notification needed
     }
 

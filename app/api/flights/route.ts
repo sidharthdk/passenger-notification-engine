@@ -74,6 +74,13 @@ export async function PUT(request: Request) {
 
         // 4. Trigger Rules Engine
         // We pass both old and new flight data to determine if a notification is needed
+        console.log('[API] Flight Update:', {
+            id,
+            oldStatus: oldFlight.status,
+            newStatus: newFlight.status,
+            oldDelay: oldFlight.delay_minutes,
+            newDelay: newFlight.delay_minutes
+        });
         await processFlightUpdate(oldFlight as Flight, newFlight as Flight);
 
         return NextResponse.json({ data: newFlight });

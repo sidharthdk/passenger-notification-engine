@@ -20,6 +20,7 @@ export async function sendNotification(
     payload: any
 ) {
     console.log(`[SENDING] Channel: ${channel}, Recipient: ${passengerId}`);
+
     let status = 'SENT';
     let errorMsg = null;
 

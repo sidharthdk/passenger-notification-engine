@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 export default function AdminPage() {
     const [flights, setFlights] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [cancellingFlightId, setCancellingFlightId] = useState<string | null>(null);
+    const [confirmationText, setConfirmationText] = useState('');
 
     const fetchFlights = async () => {
         setLoading(true);
@@ -28,6 +30,19 @@ export default function AdminPage() {
         await fetch('/api/flights', { method: 'PUT', body: JSON.stringify({ id, ...updates }) });
         // Reload to ensure consistency
         fetchFlights();
+    };
+
+    const handleCancelClick = (id: string) => {
+        setCancellingFlightId(id);
+        setConfirmationText('');
+    };
+
+    const confirmCancellation = async () => {
+        if (cancellingFlightId && confirmationText.toLowerCase() === 'cancel') {
+            await updateFlight(cancellingFlightId, { status: 'CANCELLED' });
+            setCancellingFlightId(null);
+            setConfirmationText('');
+        }
     };
 
     return (
@@ -88,7 +103,7 @@ export default function AdminPage() {
                             </button>
 
                             <button
-                                onClick={() => updateFlight(f.id, { status: 'CANCELLED' })}
+                                onClick={() => handleCancelClick(f.id)}
                                 className="btn btn-danger"
                                 style={{ gridColumn: '1 / -1', width: '100%' }}
                             >
@@ -98,6 +113,77 @@ export default function AdminPage() {
                     </div>
                 ))}
             </div>
+
+            {cancellingFlightId && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000,
+                    backdropFilter: 'blur(4px)'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '2rem',
+                        borderRadius: '1rem',
+                        maxWidth: '400px',
+                        width: '90%',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }}>
+                        <h3 style={{ marginTop: 0, fontSize: '1.5rem', color: '#dc2626' }}>Confirm Cancellation</h3>
+                        <p style={{ color: '#4b5563', marginBottom: '1.5rem' }}>
+                            Are you sure you want to cancel this flight? This action cannot be undone immediately.
+                            please type <strong>cancel</strong> below to confirm.
+                        </p>
+
+                        <input
+                            type="text"
+                            value={confirmationText}
+                            onChange={(e) => setConfirmationText(e.target.value)}
+                            placeholder="Type 'cancel' to confirm"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                borderRadius: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                marginBottom: '1.5rem',
+                                fontSize: '1rem',
+                                outline: 'none'
+                            }}
+                            autoFocus
+                        />
+
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => {
+                                    setCancellingFlightId(null);
+                                    setConfirmationText('');
+                                }}
+                                className="btn btn-outline"
+                            >
+                                Go Back
+                            </button>
+                            <button
+                                onClick={confirmCancellation}
+                                disabled={confirmationText.toLowerCase() !== 'cancel'}
+                                className="btn btn-danger"
+                                style={{
+                                    opacity: confirmationText.toLowerCase() !== 'cancel' ? 0.5 : 1,
+                                    cursor: confirmationText.toLowerCase() !== 'cancel' ? 'not-allowed' : 'pointer'
+                                }}
+                            >
+                                Confirm Cancellation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
