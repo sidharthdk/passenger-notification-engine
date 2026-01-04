@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 
+import Link from 'next/link';
+
 export default function AdminPage() {
     const [flights, setFlights] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,7 +64,15 @@ export default function AdminPage() {
                     <h1 style={{ marginBottom: '0.25rem', fontSize: '2rem' }}>Flight Control</h1>
                     <p style={{ margin: 0, color: 'var(--text-muted)' }}>Manage live operations and triggers</p>
                 </div>
-                <button onClick={fetchFlights} className="btn btn-outline" style={{ background: 'white' }}>🔄 Refresh Data</button>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <Link href="/monitor">
+                        <button className="btn btn-outline" style={{ background: 'white' }}>✈️ Live Monitor</button>
+                    </Link>
+                    <Link href="/alerts/history">
+                        <button className="btn btn-outline" style={{ background: 'white' }}>📜 MCP History</button>
+                    </Link>
+                    <button onClick={fetchFlights} className="btn btn-outline" style={{ background: 'white' }}>🔄 Refresh Data</button>
+                </div>
             </header>
 
             {loading && (

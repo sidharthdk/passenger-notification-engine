@@ -2,30 +2,79 @@ import { Flight, BookingWithPassenger } from '@/types';
 import { supabase } from './supabase';
 import { sendNotification } from './notificationService';
 import { getTemplate, NEXT_STEPS } from './templates';
+import { MCPDecisionEngine } from './mcp/engine';
+import { MCPContext, MCPResponse } from './mcp/types';
 
 /**
  * Processes a flight update to determine if notifications should be sent.
  * @param oldFlight The flight data before the update
  * @param newFlight The flight data after the update
  */
-export async function processFlightUpdate(oldFlight: Flight | null, newFlight: Flight) {
+export async function processFlightUpdate(oldFlight: Flight | null, newFlight: Flight, isSimulation: boolean = false): Promise<MCPResponse | void> {
     const isDelayTrigger =
         (oldFlight?.delay_minutes || 0) < 30 && newFlight.delay_minutes >= 30;
 
     const isCancellationTrigger =
         oldFlight?.status !== 'CANCELLED' && newFlight.status === 'CANCELLED';
 
+    // Check for gate/terminal changes (New Trigger)
+    const isGateChange = oldFlight?.gate !== newFlight.gate && !!newFlight.gate;
+    const isTerminalChange = oldFlight?.terminal !== newFlight.terminal && !!newFlight.terminal;
+
     console.log('[RulesEngine] Evaluation:', {
         oldStatus: oldFlight?.status,
         newStatus: newFlight.status,
         isCancellationTrigger,
-        isDelayTrigger
+        isDelayTrigger,
+        isGateChange,
+        isTerminalChange,
+        isSimulation
     });
 
-    if (!isDelayTrigger && !isCancellationTrigger) {
+    if (!isDelayTrigger && !isCancellationTrigger && !isGateChange && !isTerminalChange) {
         console.log('[RulesEngine] No triggers met.');
         return; // No notification needed
     }
+
+    // --- MCP DECISION ENGINE INTEGRATION ---
+    // 1. Context Data Collection
+    const { count: passengerCount } = await supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('flight_id', newFlight.id);
+
+    const mcpContext: MCPContext = {
+        flight_id: newFlight.id,
+        flight_status: newFlight.status,
+        delay_minutes: newFlight.delay_minutes,
+        passenger_count: passengerCount || 0,
+        alerts_sent_last_10_min: 0, // Simplified for MVP
+        gate_change: isGateChange,
+        terminal_change: isTerminalChange,
+        is_simulation: isSimulation
+    };
+
+    // 2. Get Decision
+    const decision = await MCPDecisionEngine.evaluate(mcpContext);
+    console.log('[RulesEngine] MCP Decision:', decision);
+
+    // 3. Enforcement
+    if (decision.decision === 'BLOCK') {
+        // Auto-Override for Cancellations (Business Critical)
+        if (newFlight.status === 'CANCELLED') {
+            console.log('⚠️ [Override] MCP Blocked (High Risk), but proceeding for PROVEN CANCELLED status.');
+        } else {
+            console.log('🛑 Action Blocked by MCP Security Layer.');
+            return decision;
+        }
+    }
+
+    if (isSimulation) {
+        console.log('[RulesEngine] Simulation Mode: Notification skipped.');
+        return decision;
+    }
+
+    // --- END MCP INTEGRATION ---
 
     // Fetch bookings with passenger details
     // Note: We need to join with passengers. 
@@ -36,6 +85,7 @@ export async function processFlightUpdate(oldFlight: Flight | null, newFlight: F
       id,
       flight_id,
       passenger_id,
+      seat_number,
       passengers (
         id,
         name,
@@ -48,10 +98,10 @@ export async function processFlightUpdate(oldFlight: Flight | null, newFlight: F
 
     if (error) {
         console.error('Error fetching bookings:', error);
-        return;
+        return decision;
     }
 
-    if (!bookings || bookings.length === 0) return;
+    if (!bookings || bookings.length === 0) return decision;
 
     const type = isCancellationTrigger ? 'CANCELLED' : 'DELAY';
 
@@ -84,11 +134,20 @@ export async function processFlightUpdate(oldFlight: Flight | null, newFlight: F
                 message = message.replace('{nextSteps}', steps);
             }
 
+            // Send notification (logs internally)
+            // Log the "Risk Score" and "Decision" in the payload for audit
             await sendNotification(b.id, passenger.id, channel as any, {
                 message,
                 type,
-                flight_id: newFlight.id
+                flight_id: newFlight.id,
+                mcp_decision: decision.decision,
+                mcp_risk_score: decision.risk_score,
+                mcp_severity: decision.severity,
+                mcp_reason: decision.reason
             });
         }
     }
+
+
+    return decision;
 }

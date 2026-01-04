@@ -9,6 +9,8 @@ export interface Flight {
     delay_minutes: number;
     departure_time: string; // ISO string
     arrival_time: string; // ISO string
+    gate?: string | null;
+    terminal?: string | null;
     created_at: string;
 }
 
