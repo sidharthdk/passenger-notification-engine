@@ -4,6 +4,8 @@ import { sendNotification } from './notificationService';
 import { getTemplate, NEXT_STEPS } from './templates';
 import { MCPDecisionEngine } from './mcp/engine';
 import { MCPContext, MCPResponse } from './mcp/types';
+import { enqueueNotificationJob } from './queue';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Processes a flight update to determine if notifications should be sent.
@@ -36,6 +38,22 @@ export async function processFlightUpdate(oldFlight: Flight | null, newFlight: F
         return; // No notification needed
     }
 
+    // --- COOLDOWN CHECK (10 Minutes) ---
+    // Check if any SENT job exists for this flight in the last 10 minutes
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { data: recentJobs } = await supabase
+        .from('notification_jobs')
+        .select('id')
+        .eq('flight_id', newFlight.id)
+        .eq('status', 'SENT')
+        .gt('updated_at', tenMinutesAgo)
+        .limit(1);
+
+    if (recentJobs && recentJobs.length > 0) {
+        console.warn(`[RulesEngine] 🛑 Cooldown Active. Alert skipped for Flight ${newFlight.flight_number}.`);
+        return;
+    }
+
     // --- MCP DECISION ENGINE INTEGRATION ---
     // 1. Context Data Collection
     const { count: passengerCount } = await supabase
@@ -57,6 +75,16 @@ export async function processFlightUpdate(oldFlight: Flight | null, newFlight: F
     // 2. Get Decision
     const decision = await MCPDecisionEngine.evaluate(mcpContext);
     console.log('[RulesEngine] MCP Decision:', decision);
+
+    // [NEW] Persist MCP Decision
+    await supabase.from('mcp_decisions').insert({
+        flight_id: newFlight.id,
+        decision: decision.decision,
+        severity: decision.severity,
+        risk_score: decision.risk_score,
+        reason: decision.reason,
+        context: mcpContext
+    });
 
     // 3. Enforcement
     if (decision.decision === 'BLOCK') {
@@ -105,6 +133,8 @@ export async function processFlightUpdate(oldFlight: Flight | null, newFlight: F
 
     const type = isCancellationTrigger ? 'CANCELLED' : 'DELAY';
 
+    const requestId = uuidv4();
+
     for (const booking of bookings) {
         // Cast to expected type including join
         const b = booking as any;
@@ -134,17 +164,25 @@ export async function processFlightUpdate(oldFlight: Flight | null, newFlight: F
                 message = message.replace('{nextSteps}', steps);
             }
 
-            // Send notification (logs internally)
-            // Log the "Risk Score" and "Decision" in the payload for audit
-            await sendNotification(b.id, passenger.id, channel as any, {
-                message,
-                type,
-                flight_id: newFlight.id,
-                mcp_decision: decision.decision,
-                mcp_risk_score: decision.risk_score,
-                mcp_severity: decision.severity,
-                mcp_reason: decision.reason
-            });
+            // [NEW] Enqueue Job instead of immediate send
+            // Idempotency Key: RequestID + BookingID + Channel (Unique for this batch run)
+            const idempotencyKey = `job_${requestId}_${b.id}_${channel}`;
+
+            await enqueueNotificationJob(
+                newFlight.id,
+                b.id,
+                channel,
+                {
+                    message,
+                    type,
+                    flight_id: newFlight.id,
+                    mcp_decision: decision.decision,
+                    mcp_risk_score: decision.risk_score,
+                    mcp_severity: decision.severity,
+                    mcp_reason: decision.reason
+                },
+                idempotencyKey
+            );
         }
     }
 
