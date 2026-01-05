@@ -40,6 +40,7 @@ A comprehensive Flight Notification System MVP built with **Next.js**, **Supabas
 
 3.  **Environment Configuration**
 
+<<<<<<< HEAD
     Copy `.env.example` to `.env` in the root directory and fill in your keys:
 
     ```bash
@@ -55,6 +56,11 @@ A comprehensive Flight Notification System MVP built with **Next.js**, **Supabas
     # Other API Keys
     OTHER_API_KEY_1=
     OTHER_API_KEY_2=
+=======
+    Create a `.env` file in the root directory and configure the following variables:
+
+    ```env
+>>>>>>> 118b6e62dcef4402ec7c9fb9b812fd70b660190a
     # Supabase Configuration
     NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
