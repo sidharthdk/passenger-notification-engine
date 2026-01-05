@@ -37,7 +37,38 @@ CREATE TABLE public.notification_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     booking_id UUID REFERENCES public.bookings(id),
     channel notification_channel NOT NULL,
-    status TEXT NOT NULL,
+);
+
+CREATE TABLE IF NOT EXISTS public.notification_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    flight_id UUID REFERENCES public.flights(id),
+    booking_id UUID REFERENCES public.bookings(id),
+    channel TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'BLOCKED', 'RETRYING')),
     payload JSONB,
-    sent_at TIMESTAMPTZ DEFAULT NOW()
+    idempotency_key TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    retry_count INTEGER DEFAULT 0,
+    error_message TEXT
+);
+
+CREATE TABLE IF NOT EXISTS public.mcp_decisions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    flight_id UUID REFERENCES public.flights(id),
+    decision TEXT NOT NULL CHECK (decision IN ('APPROVE', 'FLAG', 'BLOCK')),
+    severity TEXT NOT NULL,
+    risk_score FLOAT NOT NULL,
+    reason TEXT,
+    context JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.admin_overrides (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    flight_id UUID REFERENCES public.flights(id),
+    overridden_by UUID REFERENCES auth.users(id), 
+    reason TEXT NOT NULL,
+    original_decision TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );

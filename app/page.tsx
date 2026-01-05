@@ -15,28 +15,28 @@ export default async function LandingPage() {
           Real-time alerts, proactive rebooking, and multi-language support ensuring passengers stay informed during disruptions.
         </p>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
-          <div className="card" style={{ textAlign: 'left', maxWidth: '400px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', alignItems: 'stretch' }}>
+          <div className="card" style={{ textAlign: 'left', maxWidth: '400px', display: 'flex', flexDirection: 'column', width: '100%' }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <Plane className="w-5 h-5" /> Airline Operations
             </h3>
-            <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+            <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem', flexGrow: 1 }}>
               Monitor system-wide alerts, approve exception handling, and manage flight statuses.
             </p>
-            <a href="/admin" className="btn btn-primary btn-full">
-              Access Admin Console <ArrowRight className="w-4 h-4 ml-2" style={{ marginLeft: '8px' }} />
+            <a href="/admin/login" className="btn btn-primary btn-full" style={{ marginTop: 'auto' }}>
+              Staff Login <ArrowRight className="w-4 h-4 ml-2" style={{ marginLeft: '8px' }} />
             </a>
           </div>
 
-          <div className="card" style={{ textAlign: 'left', maxWidth: '400px' }}>
+          <div className="card" style={{ textAlign: 'left', maxWidth: '400px', display: 'flex', flexDirection: 'column', width: '100%' }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <Activity className="w-5 h-5" /> Flight Monitor
+              <Globe className="w-5 h-5" /> Passenger Services
             </h3>
-            <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-              Public view of flight arrivals, delays, and current airport status.
+            <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem', flexGrow: 1 }}>
+              Check your bookings, flight status, and receive personalized notifications.
             </p>
-            <a href="/monitor" className="btn btn-outline btn-full">
-              View Flight Board <ArrowRight className="w-4 h-4 ml-2" style={{ marginLeft: '8px' }} />
+            <a href="/passenger/login" className="btn btn-outline btn-full" style={{ marginTop: 'auto' }}>
+              Passenger Login <ArrowRight className="w-4 h-4 ml-2" style={{ marginLeft: '8px' }} />
             </a>
           </div>
         </div>

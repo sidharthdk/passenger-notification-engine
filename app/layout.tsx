@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Plane } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Passenger Notification Engine',
+  title: 'South Indian Airways | Notification Engine',
   description: 'Flight Status & Notifications',
 };
 
@@ -18,7 +18,7 @@ export default function RootLayout({
         <nav className="navbar">
           <div className="container nav-content">
             <a href="/" className="logo">
-              <Plane className="w-6 h-6" /> SkyAlert
+              <Plane className="w-6 h-6" /> South Indian Airways
             </a>
             <div className="nav-links">
               <a href="/">Dashboard</a>
@@ -32,7 +32,7 @@ export default function RootLayout({
         </main>
         <footer style={{ borderTop: '1px solid var(--border)', padding: '2rem 0', marginTop: '4rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
           <div className="container">
-            &copy; {new Date().getFullYear()} SkyAlert Systems. All rights reserved.
+            &copy; {new Date().getFullYear()} South Indian Airways. All rights reserved.
           </div>
         </footer>
       </body>

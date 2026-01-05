@@ -21,7 +21,13 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
-        fetchFlights();
+        // Security Check
+        const session = localStorage.getItem('admin_session');
+        if (!session) {
+            window.location.href = '/admin/login';
+        } else {
+            fetchFlights();
+        }
     }, []);
 
     const updateFlight = async (id: string, updates: any) => {
