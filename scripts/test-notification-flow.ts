@@ -6,9 +6,9 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 // 2. Import dependencies after env is loaded
 // Note: using .ts extensions for ts-node ESM execution
-import { supabase } from '../lib/supabase.ts';
-import { processFlightUpdate } from '../lib/rulesEngine.ts';
-import { Flight } from '../types/index.ts';
+import { supabase } from '../lib/supabase';
+import { processFlightUpdate } from '../lib/rulesEngine';
+import { Flight } from '../types/index';
 
 async function main() {
     console.log('🚀 Starting Notification Flow Test...');
