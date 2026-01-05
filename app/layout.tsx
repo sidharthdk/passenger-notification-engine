@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Plane } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Passenger Notification Engine',
@@ -17,7 +18,7 @@ export default function RootLayout({
         <nav className="navbar">
           <div className="container nav-content">
             <a href="/" className="logo">
-              <span>✈️</span> SkyAlert
+              <Plane className="w-6 h-6" /> SkyAlert
             </a>
             <div className="nav-links">
               <a href="/">Dashboard</a>

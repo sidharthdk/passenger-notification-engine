@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
 import Link from 'next/link';
+import { Monitor, History, RefreshCw, CheckCircle, Clock, Ban, AlertTriangle } from 'lucide-react';
 
 export default function AdminPage() {
     const [flights, setFlights] = useState<any[]>([]);
@@ -56,7 +56,7 @@ export default function AdminPage() {
                 marginBottom: '3rem',
                 background: 'rgba(255,255,255,0.5)',
                 padding: '1.5rem',
-                borderRadius: '1.5rem',
+                borderRadius: 'var(--radius)',
                 backdropFilter: 'blur(10px)',
                 border: '1px solid white'
             }}>
@@ -66,12 +66,18 @@ export default function AdminPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <Link href="/monitor">
-                        <button className="btn btn-outline" style={{ background: 'white' }}>✈️ Live Monitor</button>
+                        <button className="btn btn-outline" style={{ background: 'white' }}>
+                            <Monitor className="w-4 h-4 mr-2" style={{ marginRight: '8px' }} /> Live Monitor
+                        </button>
                     </Link>
                     <Link href="/alerts/history">
-                        <button className="btn btn-outline" style={{ background: 'white' }}>📜 MCP History</button>
+                        <button className="btn btn-outline" style={{ background: 'white' }}>
+                            <History className="w-4 h-4 mr-2" style={{ marginRight: '8px' }} /> MCP History
+                        </button>
                     </Link>
-                    <button onClick={fetchFlights} className="btn btn-outline" style={{ background: 'white' }}>🔄 Refresh Data</button>
+                    <button onClick={fetchFlights} className="btn btn-outline" style={{ background: 'white' }}>
+                        <RefreshCw className="w-4 h-4 mr-2" style={{ marginRight: '8px' }} /> Refresh Data
+                    </button>
                 </div>
             </header>
 
@@ -101,7 +107,7 @@ export default function AdminPage() {
                                 disabled={f.status === 'ON_TIME'}
                                 style={{ width: '100%', fontSize: '0.8rem' }}
                             >
-                                ✅ On Time
+                                <CheckCircle className="w-4 h-4 mr-2" style={{ marginRight: '6px' }} /> On Time
                             </button>
 
                             <button
@@ -109,7 +115,7 @@ export default function AdminPage() {
                                 className="btn btn-warning"
                                 style={{ width: '100%', fontSize: '0.8rem' }}
                             >
-                                ⚠️ +45m Delay
+                                <Clock className="w-4 h-4 mr-2" style={{ marginRight: '6px' }} /> +45m Delay
                             </button>
 
                             <button
@@ -117,7 +123,7 @@ export default function AdminPage() {
                                 className="btn btn-danger"
                                 style={{ gridColumn: '1 / -1', width: '100%' }}
                             >
-                                🛑 Cancel Flight
+                                <Ban className="w-4 h-4 mr-2" style={{ marginRight: '6px' }} /> Cancel Flight
                             </button>
                         </div>
                     </div>
@@ -141,12 +147,14 @@ export default function AdminPage() {
                     <div style={{
                         backgroundColor: 'white',
                         padding: '2rem',
-                        borderRadius: '1rem',
+                        borderRadius: 'var(--radius)',
                         maxWidth: '400px',
                         width: '90%',
                         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
                     }}>
-                        <h3 style={{ marginTop: 0, fontSize: '1.5rem', color: '#dc2626' }}>Confirm Cancellation</h3>
+                        <h3 style={{ marginTop: 0, fontSize: '1.5rem', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <AlertTriangle className="w-6 h-6" /> Confirm Cancellation
+                        </h3>
                         <p style={{ color: '#4b5563', marginBottom: '1.5rem' }}>
                             Are you sure you want to cancel this flight? This action cannot be undone immediately.
                             please type <strong>cancel</strong> below to confirm.

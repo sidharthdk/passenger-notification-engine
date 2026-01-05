@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Plane, Activity, RefreshCw, History, ArrowUpRight } from 'lucide-react';
 
 interface Flight {
     id: string;
@@ -36,17 +37,7 @@ export default function MonitorPage() {
 
     const handleSync = async () => {
         setLoading(true);
-        // Sync with AviationStack in Simulation Mode to get "Live" delay data without mutating DB
-        // But for "Monitor", we probably want the actual DB state if we are "Deciding" based on stored data?
-        // User said: "create a realtime alert page ... decide if the flight is delayed or not".
-        // If we use simulate=true, we get "updates" array.
-        // Let's call Sync in SIMULATION mode and merge with local data to show "Live vs Stored" or just "Live View".
-        // Actually, simplest is to just sync for real (simulate=false) if we want "Realtime Alert Page".
-        // But let's stick to safe defaults. I'll just refresh the data from DB (assuming background sync or manual sync happened).
-        // OR better: Invoke the sync API to "Refresh" the DB state.
-
         try {
-            // Provide a way to "Check Live Status"
             const res = await fetch('/api/sync-flights'); // Real sync
             const data = await res.json();
             console.log('Sync result:', data);
@@ -78,21 +69,47 @@ export default function MonitorPage() {
         <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '2.5rem' }}>✈️ Real-Time Flight Monitor</h1>
-                    <p style={{ color: '#666', marginTop: '0.5rem' }}>Live tracking and delay assessment</p>
+                    <h1 style={{ margin: 0, fontSize: '2.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Activity className="w-10 h-10 text-blue-600" /> Real-Time Flight Monitor
+                    </h1>
+                    <p style={{ color: '#666', marginTop: '0.5rem', marginLeft: '3.5rem' }}>Live tracking and delay assessment</p>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
                         onClick={handleSync}
                         disabled={loading}
-                        style={{ padding: '0.75rem 1.5rem', background: '#0070f3', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: '#0ea5e9',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 'var(--radius)',
+                            cursor: 'pointer',
+                            opacity: loading ? 0.7 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            fontWeight: 500
+                        }}
                     >
-                        {loading ? 'Syncing...' : '🔄 Check Live Status'}
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        {loading ? 'Syncing...' : 'Check Live Status'}
                     </button>
 
                     <Link href="/alerts/history" passHref>
-                        <button style={{ padding: '0.75rem 1.5rem', background: '#333', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
-                            📜 MCP History
+                        <button style={{
+                            padding: '0.75rem 1.5rem',
+                            background: '#334155',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 'var(--radius)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            fontWeight: 500
+                        }}>
+                            <History className="w-4 h-4" /> MCP History
                         </button>
                     </Link>
                 </div>
@@ -112,30 +129,35 @@ export default function MonitorPage() {
                             alignItems: 'center',
                             padding: '1.5rem',
                             background: 'white',
-                            borderRadius: '12px',
+                            borderRadius: 'var(--radius)',
                             boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
-                            borderLeft: `6px solid ${isCritical ? 'red' : isDelayed ? 'orange' : '#10b981'}`
+                            borderLeft: `6px solid ${isCritical ? '#ef4444' : isDelayed ? '#f97316' : '#10b981'}`
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                                 <div>
-                                    <h2 style={{ margin: 0, fontSize: '2rem' }}>{f.flight_number}</h2>
+                                    <h2 style={{ margin: 0, fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        {f.flight_number}
+                                        <a href={`/status/${f.id}`} target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8' }}>
+                                            <ArrowUpRight className="w-5 h-5 hover:text-blue-500" />
+                                        </a>
+                                    </h2>
                                     <span style={{
                                         padding: '4px 8px',
                                         borderRadius: '4px',
                                         background: '#f3f4f6',
                                         fontSize: '0.8rem',
                                         fontWeight: 'bold',
-                                        color: '#666'
+                                        color: '#64748b'
                                     }}>
                                         Gate {f.gate || '--'} / Term {f.terminal || '--'}
                                     </span>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', columnGap: '2rem', rowGap: '0.25rem' }}>
-                                    <div style={{ color: '#999', fontSize: '0.9rem' }}>SCHEDULED</div>
-                                    <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{formatTime(scheduled)}</div>
+                                    <div style={{ color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>SCHEDULED</div>
+                                    <div style={{ fontWeight: 600, fontSize: '1.1rem', color: '#334155' }}>{formatTime(scheduled)}</div>
 
-                                    <div style={{ color: isDelayed ? 'red' : '#999', fontSize: '0.9rem' }}>ESTIMATED</div>
-                                    <div style={{ fontWeight: 600, fontSize: '1.1rem', color: isDelayed ? 'red' : 'inherit' }}>
+                                    <div style={{ color: isDelayed ? '#ef4444' : '#94a3b8', fontSize: '0.9rem', fontWeight: 600 }}>ESTIMATED</div>
+                                    <div style={{ fontWeight: 600, fontSize: '1.1rem', color: isDelayed ? '#ef4444' : '#334155' }}>
                                         {formatTime(estimated)}
                                     </div>
                                 </div>
@@ -145,12 +167,17 @@ export default function MonitorPage() {
                                 <div style={{
                                     fontSize: '1.5rem',
                                     fontWeight: 'bold',
-                                    color: isCritical ? 'red' : isDelayed ? 'orange' : '#10b981'
+                                    color: isCritical ? '#ef4444' : isDelayed ? '#f97316' : '#10b981',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    justifyContent: 'flex-end'
                                 }}>
+                                    {f.status === 'ON_TIME' && <Plane className="w-6 h-6 transform -rotate-45" />}
                                     {f.status}
                                 </div>
                                 {f.delay_minutes > 0 && (
-                                    <div style={{ color: 'red', fontWeight: 600 }}>
+                                    <div style={{ color: '#ef4444', fontWeight: 600 }}>
                                         +{f.delay_minutes} min
                                     </div>
                                 )}
@@ -160,7 +187,7 @@ export default function MonitorPage() {
                 })}
             </div>
             {flights.length === 0 && !loading && (
-                <p style={{ textAlign: 'center', color: '#888', marginTop: '2rem' }}>No active flights found.</p>
+                <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '2rem' }}>No active flights found.</p>
             )}
         </div>
     );
