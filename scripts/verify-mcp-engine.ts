@@ -10,6 +10,8 @@ async function main() {
         delay_minutes: 45,
         passenger_count: 50,
         alerts_sent_last_10_min: 0,
+        gate_change: false,
+        terminal_change: false,
         is_simulation: false
     };
 
