@@ -29,6 +29,10 @@ export class LocalAuthProvider implements AuthProvider {
             token: data.token
         };
 
+        // Enforce Single Session: Clear the OTHER session if it exists
+        const conflictingKey = this.storageKey === 'admin_session' ? 'passenger_session' : 'admin_session';
+        localStorage.removeItem(conflictingKey);
+
         // Persist session
         localStorage.setItem(this.storageKey, JSON.stringify(user));
         return user;
