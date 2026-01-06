@@ -11,6 +11,16 @@ interface HistoryData {
 export default function AlertHistoryPage() {
     const [data, setData] = useState<HistoryData>({ decisions: [], jobs: [] });
     const [loading, setLoading] = useState(true);
+    const [isAuthorized, setIsAuthorized] = useState(false);
+
+    useEffect(() => {
+        const session = localStorage.getItem('admin_session');
+        if (!session) {
+            window.location.href = '/admin/login';
+        } else {
+            setIsAuthorized(true);
+        }
+    }, []);
 
     const fetchHistory = async () => {
         setLoading(true);
@@ -28,10 +38,15 @@ export default function AlertHistoryPage() {
     };
 
     useEffect(() => {
+        if (!isAuthorized) return; // Add condition here for safety
         fetchHistory();
         const interval = setInterval(fetchHistory, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [isAuthorized]); // Add dependency
+
+    if (!isAuthorized) {
+        return null;
+    }
 
     return (
         <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>

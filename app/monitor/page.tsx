@@ -18,6 +18,18 @@ interface Flight {
 export default function MonitorPage() {
     const [flights, setFlights] = useState<Flight[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isAuthorized, setIsAuthorized] = useState(false);
+
+    useEffect(() => {
+        // Security Check
+        const session = localStorage.getItem('admin_session');
+        if (!session) {
+            // Redirect to admin login if not authorized
+            window.location.href = '/admin/login';
+        } else {
+            setIsAuthorized(true);
+        }
+    }, []);
 
     const fetchFlights = async () => {
         setLoading(true);
@@ -53,6 +65,10 @@ export default function MonitorPage() {
         const interval = setInterval(fetchFlights, 30000); // Auto-refresh every 30s
         return () => clearInterval(interval);
     }, []);
+
+    if (!isAuthorized) {
+        return null;
+    }
 
     // Helper to calculate Estimated Time
     const getEstimatedTime = (scheduledIso: string, delayMinutes: number) => {

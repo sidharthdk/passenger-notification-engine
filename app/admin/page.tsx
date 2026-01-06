@@ -9,6 +9,7 @@ export default function AdminPage() {
     const [loading, setLoading] = useState(true);
     const [cancellingFlightId, setCancellingFlightId] = useState<string | null>(null);
     const [confirmationText, setConfirmationText] = useState('');
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
     const fetchFlights = async () => {
         setLoading(true);
@@ -26,9 +27,14 @@ export default function AdminPage() {
         if (!session) {
             window.location.href = '/admin/login';
         } else {
+            setIsAuthorized(true);
             fetchFlights();
         }
     }, []);
+
+    if (!isAuthorized) {
+        return null;
+    }
 
     const updateFlight = async (id: string, updates: any) => {
         const original = flights;
