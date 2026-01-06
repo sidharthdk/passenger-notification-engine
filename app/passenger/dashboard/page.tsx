@@ -63,13 +63,42 @@ export default function PassengerDashboard() {
     };
 
     const updateStatus = async (bookingId: string, status: string) => {
+        // Optimistic Update
+        const updatedBookings = bookings.map(b =>
+            b.id === bookingId ? { ...b, passenger_status: status } : b
+        );
+        setBookings(updatedBookings);
+
         try {
             await fetch('/api/passenger/update-status', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ bookingId, status })
             });
-            fetchBookings(passenger?.id); // Refresh to see changes
+            // Background refresh to ensure consistency
+            fetchBookings(passenger?.id);
+        } catch (e) {
+            console.error(e);
+            // Revert on error could be added here, but usually fetchBookings handles it next cycle
+        }
+    };
+
+    const handleCancelBooking = async (bookingId: string) => {
+        if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
+
+        // Optimistic Update
+        const updatedBookings = bookings.map(b =>
+            b.id === bookingId ? { ...b, status: 'CANCELLED' } : b
+        );
+        setBookings(updatedBookings);
+
+        try {
+            await fetch('/api/passenger/cancel-booking', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bookingId })
+            });
+            fetchBookings(passenger?.id);
         } catch (e) {
             console.error(e);
         }
@@ -149,7 +178,9 @@ export default function PassengerDashboard() {
                     {bookings.length === 0 && !refreshing && <p style={{ color: '#94a3b8' }}>No bookings found.</p>}
 
                     {bookings.map(b => {
-                        const canRefund = b.flight.status !== 'CANCELLED'; // Simplified logic
+                        const isCancelled = b.status === 'CANCELLED' || b.flight.status === 'CANCELLED';
+                        const canRefund = !isCancelled;
+
                         // Mock Refund Calculation: 
                         // If < 2h to departure: 0%
                         // If < 24h: 50%
@@ -164,10 +195,13 @@ export default function PassengerDashboard() {
                         const refundAmount = (b.ticket_price || 0) * (refundPct / 100);
 
                         return (
-                            <div key={b.id} style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                            <div key={b.id} style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', opacity: isCancelled ? 0.7 : 1 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                                     <div>
-                                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>{b.flight.flight_number}</h3>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>{b.flight.flight_number}</h3>
+                                            {isCancelled && <span style={{ fontSize: '0.7rem', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>CANCELLED</span>}
+                                        </div>
                                         <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
                                             Departs: {new Date(b.flight.departure_time).toLocaleString()}
                                         </div>
@@ -187,20 +221,23 @@ export default function PassengerDashboard() {
                                         </label>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <button
-                                                onClick={() => updateStatus(b.id, 'ON_TIME')}
-                                                style={{ padding: '6px', borderRadius: '4px', border: '1px solid #fff', background: b.passenger_status === 'ON_TIME' ? '#dcfce7' : '#f1f5f9', color: b.passenger_status === 'ON_TIME' ? '#166534' : '#64748b', cursor: 'pointer', flex: 1 }}
+                                                onClick={() => !isCancelled && updateStatus(b.id, 'ON_TIME')}
+                                                disabled={isCancelled}
+                                                style={{ padding: '6px', borderRadius: '4px', border: '1px solid #fff', background: b.passenger_status === 'ON_TIME' ? '#dcfce7' : '#f1f5f9', color: b.passenger_status === 'ON_TIME' ? '#166534' : '#64748b', cursor: isCancelled ? 'not-allowed' : 'pointer', flex: 1 }}
                                             >
                                                 <CheckCircle className="w-4 h-4 mx-auto" />
                                             </button>
                                             <button
-                                                onClick={() => updateStatus(b.id, 'RUNNING_LATE')}
-                                                style={{ padding: '6px', borderRadius: '4px', border: '1px solid #fff', background: b.passenger_status === 'RUNNING_LATE' ? '#ffedd5' : '#f1f5f9', color: b.passenger_status === 'RUNNING_LATE' ? '#9a3412' : '#64748b', cursor: 'pointer', flex: 1 }}
+                                                onClick={() => !isCancelled && updateStatus(b.id, 'RUNNING_LATE')}
+                                                disabled={isCancelled}
+                                                style={{ padding: '6px', borderRadius: '4px', border: '1px solid #fff', background: b.passenger_status === 'RUNNING_LATE' ? '#ffedd5' : '#f1f5f9', color: b.passenger_status === 'RUNNING_LATE' ? '#9a3412' : '#64748b', cursor: isCancelled ? 'not-allowed' : 'pointer', flex: 1 }}
                                             >
                                                 <Clock className="w-4 h-4 mx-auto" />
                                             </button>
                                             <button
-                                                onClick={() => updateStatus(b.id, 'MIGHT_MISS')}
-                                                style={{ padding: '6px', borderRadius: '4px', border: '1px solid #fff', background: b.passenger_status === 'MIGHT_MISS' ? '#fee2e2' : '#f1f5f9', color: b.passenger_status === 'MIGHT_MISS' ? '#991b1b' : '#64748b', cursor: 'pointer', flex: 1 }}
+                                                onClick={() => !isCancelled && updateStatus(b.id, 'MIGHT_MISS')}
+                                                disabled={isCancelled}
+                                                style={{ padding: '6px', borderRadius: '4px', border: '1px solid #fff', background: b.passenger_status === 'MIGHT_MISS' ? '#fee2e2' : '#f1f5f9', color: b.passenger_status === 'MIGHT_MISS' ? '#991b1b' : '#64748b', cursor: isCancelled ? 'not-allowed' : 'pointer', flex: 1 }}
                                             >
                                                 <AlertTriangle className="w-4 h-4 mx-auto" />
                                             </button>
@@ -221,8 +258,20 @@ export default function PassengerDashboard() {
                                                     ({refundPct}% Refund)
                                                 </div>
                                             </div>
-                                            <button style={{ padding: '4px 8px', fontSize: '0.75rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                                                Cancel & Refund
+                                            <button
+                                                onClick={() => handleCancelBooking(b.id)}
+                                                disabled={!canRefund}
+                                                style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: '0.75rem',
+                                                    background: canRefund ? '#ef4444' : '#94a3b8',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: canRefund ? 'pointer' : 'not-allowed'
+                                                }}
+                                            >
+                                                {isCancelled ? 'Cancelled' : 'Cancel & Refund'}
                                             </button>
                                         </div>
                                     </div>

@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS public.bookings (
     -- NEW FIELDS FOR PASSENGER PORTAL
     passenger_status TEXT DEFAULT 'ON_TIME', -- 'ON_TIME', 'RUNNING_LATE', 'MIGHT_MISS'
     ticket_price DECIMAL DEFAULT 0,
-    fare_class TEXT DEFAULT 'ECONOMY' -- 'ECONOMY', 'BUSINESS'
+    fare_class TEXT DEFAULT 'ECONOMY', -- 'ECONOMY', 'BUSINESS'
+    status TEXT DEFAULT 'CONFIRMED' -- 'CONFIRMED', 'CANCELLED'
 );
 
 CREATE TABLE IF NOT EXISTS public.notification_logs (
