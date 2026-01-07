@@ -11,11 +11,12 @@ export class AuthService {
      * @param role Context of the login (Admin vs Passenger)
      */
     static getProvider(role: 'ADMIN' | 'PASSENGER'): AuthProvider {
-        if (USE_OIDC) {
-            // In a real scenario, we might have different realms or clients for Admin vs Passenger
-            // For now, we return the generic Keycloak provider
+        if (role === 'ADMIN') {
+            // Staff/Ops -> Keysloak/Okta
             return new KeycloakAuthProvider();
+        } else {
+            // Passengers -> PNR/Local
+            return new LocalAuthProvider(role);
         }
-        return new LocalAuthProvider(role);
     }
 }

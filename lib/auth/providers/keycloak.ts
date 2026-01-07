@@ -16,9 +16,20 @@ export class KeycloakAuthProvider implements AuthProvider {
     }
 
     async login(): Promise<void> {
-        console.log('[OIDC] Redirecting to Keycloak...', this.config);
-        // window.location.href = ... build OIDC url ...
-        alert('OIDC Login Redirect Placeholder');
+        console.log('[OIDC] Redirecting to Provider...', this.config);
+
+        const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/api/auth/callback/keycloak` : '';
+
+        // Support nice generic OIDC URL if provided (Classic Okta style)
+        // Otherwise fallback to Keycloak default path
+        let baseUrl = process.env.NEXT_PUBLIC_OIDC_AUTH_URL;
+        if (!baseUrl) {
+            baseUrl = `${this.config.url}/realms/${this.config.realm}/protocol/openid-connect/auth`;
+        }
+
+        const target = `${baseUrl}?client_id=${this.config.clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid email profile`;
+
+        window.location.href = target;
     }
 
     async logout(): Promise<void> {

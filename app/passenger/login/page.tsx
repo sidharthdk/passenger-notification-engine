@@ -7,8 +7,8 @@ import { Plane, Lock, User } from 'lucide-react';
 import { AuthService } from '@/lib/auth/service';
 
 export default function PassengerLoginPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [pnr, setPnr] = useState('');
+    const [lastName, setLastName] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -20,7 +20,7 @@ export default function PassengerLoginPage() {
 
         try {
             const authProvider = AuthService.getProvider('PASSENGER');
-            await authProvider.login({ email, password });
+            await authProvider.login({ pnr, lastName });
             router.push('/passenger/dashboard');
         } catch (err: any) {
             setError(err.message || 'Login failed');
@@ -36,7 +36,7 @@ export default function PassengerLoginPage() {
                     <Plane className="w-8 h-8 text-blue-600" />
                 </div>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e293b' }}>South Indian Airways</h1>
-                <p style={{ color: '#64748b' }}>Passenger Portal Access</p>
+                <p style={{ color: '#64748b' }}>Manage My Booking</p>
             </div>
 
             {error && (
@@ -47,31 +47,31 @@ export default function PassengerLoginPage() {
 
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#475569', marginBottom: '0.5rem' }}>Email Address</label>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#475569', marginBottom: '0.5rem' }}>Booking Reference (PNR)</label>
                     <div style={{ position: 'relative' }}>
                         <User className="w-5 h-5 text-gray-400" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                         <input
-                            type="email"
+                            type="text"
                             required
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            style={{ width: '100%', padding: '0.75rem 0.75rem 0.75rem 2.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
-                            placeholder="passenger@example.com"
+                            value={pnr}
+                            onChange={e => setPnr(e.target.value.toUpperCase())}
+                            style={{ width: '100%', padding: '0.75rem 0.75rem 0.75rem 2.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', textTransform: 'uppercase' }}
+                            placeholder="e.g. SIA-101"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#475569', marginBottom: '0.5rem' }}>Password</label>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#475569', marginBottom: '0.5rem' }}>Last Name</label>
                     <div style={{ position: 'relative' }}>
                         <Lock className="w-5 h-5 text-gray-400" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                         <input
-                            type="password"
+                            type="text"
                             required
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
+                            value={lastName}
+                            onChange={e => setLastName(e.target.value)}
                             style={{ width: '100%', padding: '0.75rem 0.75rem 0.75rem 2.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
-                            placeholder="Your booking password"
+                            placeholder="e.g. Doe"
                         />
                     </div>
                 </div>

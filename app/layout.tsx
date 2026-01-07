@@ -7,11 +7,17 @@ export const metadata: Metadata = {
   description: 'Flight Status & Notifications',
 };
 
-export default function RootLayout({
+import { cookies } from 'next/headers';
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.has('admin_token');
+  // const isPassenger = cookieStore.has('passenger_token');
+
   return (
     <html lang="en">
       <body>
@@ -21,9 +27,11 @@ export default function RootLayout({
               <Plane className="w-6 h-6" /> South Indian Airways
             </a>
             <div className="nav-links">
-              <a href="/">Dashboard</a>
-              <a href="/admin">Admin Panel</a>
-              <a href="/monitor">Monitor</a>
+              <a href="/">Home</a>
+              {/* Only show Admin Panel if logged in as Admin */}
+              {isAdmin && <a href="/admin">Admin Panel</a>}
+              {isAdmin && <a href="/monitor">Monitor</a>}
+              {/* Force logout logic/button could be here too */}
             </div>
           </div>
         </nav>

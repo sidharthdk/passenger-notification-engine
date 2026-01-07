@@ -1,8 +1,23 @@
+"use client";
+
 import { Zap, Globe, ShieldCheck, ArrowRight, Plane, Activity } from 'lucide-react';
+import { AuthService } from '@/lib/auth/service';
 
-export const revalidate = 0;
+// Revalidate 0 is meaningless in a client component for data fetching, but ok to leave if it was there for layout purposes?
+// We will remove it since it's "use client".
 
-export default async function LandingPage() {
+export default function LandingPage() {
+
+  const handleStaffLogin = async () => {
+    try {
+      const auth = AuthService.getProvider('ADMIN');
+      await auth.login({});
+    } catch (e) {
+      console.error(e);
+      alert('Login Error');
+    }
+  };
+
   return (
     <div>
       {/* Hero Section */}
@@ -23,9 +38,9 @@ export default async function LandingPage() {
             <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem', flexGrow: 1 }}>
               Monitor system-wide alerts, approve exception handling, and manage flight statuses.
             </p>
-            <a href="/admin/login" className="btn btn-primary btn-full" style={{ marginTop: 'auto' }}>
+            <button onClick={handleStaffLogin} className="btn btn-primary btn-full" style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               Staff Login <ArrowRight className="w-4 h-4 ml-2" style={{ marginLeft: '8px' }} />
-            </a>
+            </button>
           </div>
 
           <div className="card" style={{ textAlign: 'left', maxWidth: '400px', display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -35,7 +50,7 @@ export default async function LandingPage() {
             <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem', flexGrow: 1 }}>
               Check your bookings, flight status, and receive personalized notifications.
             </p>
-            <a href="/passenger/login" className="btn btn-outline btn-full" style={{ marginTop: 'auto' }}>
+            <a href="/passenger/login" className="btn btn-outline btn-full" style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
               Passenger Login <ArrowRight className="w-4 h-4 ml-2" style={{ marginLeft: '8px' }} />
             </a>
           </div>
