@@ -13,6 +13,11 @@ export class KeycloakAuthProvider implements AuthProvider {
             realm: process.env.NEXT_PUBLIC_KEYCLOAK_REALM,
             clientId: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
         };
+
+        if (!this.config.url || !this.config.realm || !this.config.clientId) {
+            console.error("Keycloak Configuration Missing:", this.config);
+            // Optionally throw error or handle gracefully, but logging is critical
+        }
     }
 
     async login(): Promise<void> {
