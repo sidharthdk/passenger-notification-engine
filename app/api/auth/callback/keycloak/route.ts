@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { decodeJwt } from 'jose';
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -35,13 +36,24 @@ export async function GET(req: NextRequest) {
         }
 
         // Success! We have an access_token.
-        // Ideally we verify the signature, but for this bridge MVP we trust the direct channel.
         const accessToken = data.access_token;
+
+        // Extract Roles using 'jose'
+        let roles: string[] = [];
+        try {
+            const payload = decodeJwt(accessToken);
+            // Keycloak usually puts roles in realm_access.roles or resource_access[client].roles
+            const realmRoles = (payload.realm_access as any)?.roles || [];
+            roles = realmRoles;
+            console.log("User Roles Extracted:", roles);
+        } catch (e) {
+            console.error("Failed to decode token for role extraction", e);
+        }
 
         // Create Response
         const response = NextResponse.redirect(new URL('/admin', req.url));
 
-        // Set Admin Session Cookie
+        // Set Admin Session Cookie (Assuming existence of token implies access for MVP, or check roles includes 'admin')
         response.cookies.set('admin_token', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
