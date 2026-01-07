@@ -22,10 +22,9 @@ export class KeycloakAuthProvider implements AuthProvider {
 
         // Support nice generic OIDC URL if provided (Classic Okta style)
         // Otherwise fallback to Keycloak default path
-        let baseUrl = process.env.NEXT_PUBLIC_OIDC_AUTH_URL;
-        if (!baseUrl) {
-            baseUrl = `${this.config.url}/realms/${this.config.realm}/protocol/openid-connect/auth`;
-        }
+        // STRICT KEYCLOAK ENFORCEMENT: Ignore generic OIDC/Okta URLs
+        // We must initiate via Keycloak to allow it to broker the connection to Okta.
+        const baseUrl = `${this.config.url}/realms/${this.config.realm}/protocol/openid-connect/auth`;
 
         const target = `${baseUrl}?client_id=${this.config.clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid email profile`;
 
@@ -38,8 +37,18 @@ export class KeycloakAuthProvider implements AuthProvider {
     }
 
     async checkSession(): Promise<AuthUser | null> {
-        // Here we would check cookies or validate the fragment token
-        console.log('[OIDC] Checking session...');
-        return null;
+        try {
+            const res = await fetch('/api/auth/session');
+            if (!res.ok) return null;
+
+            const data = await res.json();
+            if (data.user) {
+                return data.user as AuthUser;
+            }
+            return null;
+        } catch (e) {
+            console.error('Session Check Failed', e);
+            return null;
+        }
     }
 }

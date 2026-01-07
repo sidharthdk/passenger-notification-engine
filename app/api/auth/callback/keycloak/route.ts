@@ -11,10 +11,8 @@ export async function GET(req: NextRequest) {
     try {
         // Exchange Code for Token
         // Support generic OIDC Token URL (Okta) or Keycloak default
-        let tokenEndpoint = process.env.OIDC_TOKEN_URL;
-        if (!tokenEndpoint) {
-            tokenEndpoint = `${process.env.NEXT_PUBLIC_KEYCLOAK_URL}/realms/${process.env.NEXT_PUBLIC_KEYCLOAK_REALM}/protocol/openid-connect/token`;
-        }
+        // STRICT KEYCLOAK ENFORCEMENT: Ignore generic OIDC/Okta URLs
+        const tokenEndpoint = `${process.env.NEXT_PUBLIC_KEYCLOAK_URL}/realms/${process.env.NEXT_PUBLIC_KEYCLOAK_REALM}/protocol/openid-connect/token`;
 
         const params = new URLSearchParams();
         params.append('grant_type', 'authorization_code');
