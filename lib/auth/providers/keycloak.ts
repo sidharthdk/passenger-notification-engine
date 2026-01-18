@@ -23,6 +23,11 @@ export class KeycloakAuthProvider implements AuthProvider {
     async login(): Promise<void> {
         console.log('[OIDC] Redirecting to Provider...', this.config);
 
+        // DEBUG: Alert to show what the app is seeing
+        if (typeof window !== 'undefined') {
+            alert(`Debug Env Vars:\nURL: ${this.config.url}\nRealm: ${this.config.realm}\nClient: ${this.config.clientId}`);
+        }
+
         const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/api/auth/callback/keycloak` : '';
 
         // Support nice generic OIDC URL if provided (Classic Okta style)
