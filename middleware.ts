@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     // 1. Protection for Admin Routes
@@ -9,12 +10,19 @@ export function middleware(request: NextRequest) {
         // Exception: Login page itself
         if (path === '/admin/login') return NextResponse.next();
 
-        // Check for Admin Session Cookie
-        // In our Hybrid model, Keycloak callback will set 'admin_token'
-        const adminToken = request.cookies.get('admin_token')?.value;
+        // Check for NextAuth Session Token
+        const token = await getToken({
+            req: request,
+            secret: process.env.NEXTAUTH_SECRET
+        });
 
-        if (!adminToken) {
-            return NextResponse.redirect(new URL('/admin/login', request.url));
+        // Also check for legacy or manual token if you still have that logic, 
+        // but for now we rely on NextAuth.
+
+        if (!token) {
+            const url = new URL('/admin/login', request.url);
+            url.searchParams.set('callbackUrl', path);
+            return NextResponse.redirect(url);
         }
     }
 

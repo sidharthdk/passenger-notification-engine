@@ -1,30 +1,36 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthService } from '@/lib/auth/service';
-import { Shield, Lock, UserCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Shield } from 'lucide-react';
 
 export default function AdminLoginPage() {
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const { data: session, status } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get('callbackUrl') || '/admin';
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
+    useEffect(() => {
+        if (status === 'authenticated') {
+            router.push(callbackUrl);
+        }
+    }, [status, router, callbackUrl]);
+
+    const handleLogin = async () => {
         setLoading(true);
-        setError('');
-
         try {
-            const authProvider = AuthService.getProvider('ADMIN');
-            await authProvider.login({});
-            // Redirect is handled by provider
-        } catch (err: any) {
-            setError(err.message || 'Access Denied');
-        } finally {
+            await signIn('keycloak', { callbackUrl });
+        } catch (error) {
+            console.error("Login failed", error);
             setLoading(false);
         }
     };
+
+    if (status === 'loading') {
+        return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
+    }
 
     return (
         <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a' }}>
@@ -36,12 +42,6 @@ export default function AdminLoginPage() {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', letterSpacing: '0.025em' }}>Restricted Area</h1>
                     <p style={{ color: '#94a3b8', marginTop: '0.5rem', fontSize: '0.9rem' }}>South Indian Airways Ops Control</p>
                 </div>
-
-                {error && (
-                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.2)', textAlign: 'center' }}>
-                        {error}
-                    </div>
-                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div className="text-center text-slate-400 mb-4">
