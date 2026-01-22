@@ -9,24 +9,41 @@ export const authOptions: NextAuthOptions = {
             issuer: `${process.env.NEXT_PUBLIC_KEYCLOAK_URL}/realms/${process.env.NEXT_PUBLIC_KEYCLOAK_REALM}`,
         }),
     ],
+    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
         async jwt({ token, account, profile }) {
-            if (account) {
-                token.accessToken = account.access_token;
-                // Extract roles if needed from profile
-
-                // Verify if the user has admin roles (logic can be expanded)
-                // For now, we assume successful login via Keycloak (which handles Okta) is sufficient for initial access,
-                // or we can decode the token here.
+            try {
+                if (account) {
+                    token.accessToken = account.access_token;
+                    token.id = profile?.sub;
+                }
+                return token;
+            } catch (error) {
+                console.error('JWT callback error:', error);
+                throw error;  // Re-throw for NextAuth error page
             }
-            return token;
         },
         async session({ session, token }) {
-            // Send properties to the client, like an access_token from a provider.
-            if (session.user) {
-                (session as any).accessToken = token.accessToken;
+            try {
+                if (session.user) {
+                    (session.user as any).id = token.id as string;
+                }
+                (session as any).accessToken = token.accessToken as string;
+                (session as any).error = undefined;
+                return session;
+            } catch (error) {
+                console.error('Session callback error:', error);
+                throw error;
             }
-            return session;
+        },
+        async redirect({ url, baseUrl }) {
+            return url.startsWith('/') ? `${baseUrl}${url}` : url;
+        },
+    },
+    debug: true,  // Enable debug temporarily
+    logger: {
+        error(code, ...message) {
+            console.error(code, message);
         },
     },
     events: {
@@ -37,5 +54,4 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: '/admin/login',
     },
-    secret: process.env.NEXTAUTH_SECRET,
 };
