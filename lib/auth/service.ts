@@ -1,5 +1,5 @@
 import { LocalAuthProvider } from './providers/local';
-import { KeycloakAuthProvider } from './providers/keycloak';
+
 import { AuthProvider } from './types';
 
 // Configuration flag to switch modes
@@ -12,8 +12,8 @@ export class AuthService {
      */
     static getProvider(role: 'ADMIN' | 'PASSENGER'): AuthProvider {
         if (role === 'ADMIN') {
-            // Staff/Ops -> Keysloak/Okta
-            return new KeycloakAuthProvider();
+            // DEPRECATED: Admin auth is now handled by NextAuth (lib/auth.ts)
+            throw new Error("Admin Auth should use NextAuth, not AuthService");
         } else {
             // Passengers -> PNR/Local
             return new LocalAuthProvider(role);

@@ -1,20 +1,30 @@
 "use client";
 
 import { Zap, Globe, ShieldCheck, ArrowRight, Plane, Activity } from 'lucide-react';
+import { useState } from 'react';
 import { AuthService } from '@/lib/auth/service';
 
 // Revalidate 0 is meaningless in a client component for data fetching, but ok to leave if it was there for layout purposes?
 // We will remove it since it's "use client".
 
 export default function LandingPage() {
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleStaffLogin = async () => {
+    setIsRedirecting(true);
+    console.log("🚀 Staff login clicked");
+
     try {
-      const auth = AuthService.getProvider('ADMIN');
-      await auth.login({});
-    } catch (e) {
-      console.error(e);
-      alert('Login Error');
+      const { signIn } = await import('next-auth/react');
+      console.log("🔐 Calling signIn('keycloak')...");
+
+      // NextAuth will automatically redirect to Keycloak
+      await signIn('keycloak', {
+        callbackUrl: '/admin',
+      });
+    } catch (err) {
+      console.error("❌ SignIn error:", err);
+      setIsRedirecting(false);
     }
   };
 
@@ -38,8 +48,21 @@ export default function LandingPage() {
             <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem', flexGrow: 1 }}>
               Monitor system-wide alerts, approve exception handling, and manage flight statuses.
             </p>
-            <button onClick={handleStaffLogin} className="btn btn-primary btn-full" style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              Staff Login <ArrowRight className="w-4 h-4 ml-2" style={{ marginLeft: '8px' }} />
+            <button
+              onClick={handleStaffLogin}
+              disabled={isRedirecting}
+              className="btn btn-primary btn-full"
+              style={{
+                marginTop: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: isRedirecting ? 0.7 : 1,
+                cursor: isRedirecting ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isRedirecting ? 'Redirecting...' : 'Staff Login'}
+              {!isRedirecting && <ArrowRight className="w-4 h-4 ml-2" style={{ marginLeft: '8px' }} />}
             </button>
           </div>
 

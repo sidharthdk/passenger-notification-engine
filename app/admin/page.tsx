@@ -1,15 +1,18 @@
 'use client';
 
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Monitor, History, RefreshCw, CheckCircle, Clock, Ban, AlertTriangle } from 'lucide-react';
 
 export default function AdminPage() {
+    const { data: session, status } = useSession();
+    const router = useRouter();
     const [flights, setFlights] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [cancellingFlightId, setCancellingFlightId] = useState<string | null>(null);
     const [confirmationText, setConfirmationText] = useState('');
-    const [isAuthorized, setIsAuthorized] = useState(false);
 
     const fetchFlights = async () => {
         setLoading(true);
@@ -22,18 +25,19 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
-        // Security Check
-        const session = localStorage.getItem('admin_session');
-        if (!session) {
-            window.location.href = '/admin/login';
-        } else {
-            setIsAuthorized(true);
+        if (status === "unauthenticated") {
+            router.push("/admin/login");
+        } else if (status === "authenticated") {
             fetchFlights();
         }
-    }, []);
+    }, [status, router]);
 
-    if (!isAuthorized) {
-        return null;
+    if (status === "loading") {
+        return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading session...</div>;
+    }
+
+    if (status === "unauthenticated") {
+        return null; // Will redirect
     }
 
     const updateFlight = async (id: string, updates: any) => {

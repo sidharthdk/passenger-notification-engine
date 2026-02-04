@@ -1,4 +1,4 @@
-import { provisionUser } from '@/lib/okta-provisioning';
+// import { provisionUser } from '@/lib/okta-provisioning';
 import { redirect } from 'next/navigation';
 
 export default function CreateUserPage() {
@@ -12,7 +12,8 @@ export default function CreateUserPage() {
         };
 
         try {
-            await provisionUser(user);
+            // await provisionUser(user);
+            console.log("User creation provisioned locally (Okta disabled)", user);
             // In a real app, you'd save to your DB here too.
         } catch (error) {
             console.error("Failed to provision user", error);
@@ -39,7 +40,7 @@ export default function CreateUserPage() {
                     <input name="lastName" type="text" required className="w-full p-2 border rounded text-black" />
                 </div>
                 <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-                    Create User (Okta)
+                    Create User (Local Only)
                 </button>
             </form>
         </div>
